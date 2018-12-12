@@ -24,6 +24,13 @@ public class Rocket : MonoBehaviour {
 
     private void ProcessInput()
     {
+        Thrust();
+        Rotate();
+        GhettoZAxisFix();
+    }
+
+    private void Thrust()
+    {
         if (Input.GetKey(KeyCode.Space)) //can thrust while rotating
         {
             myRigidBody.AddRelativeForce(Vector3.up);
@@ -36,15 +43,29 @@ public class Rocket : MonoBehaviour {
         {
             rocketSound.Stop();
         }
+    }
+
+    private void Rotate()
+    {
+        myRigidBody.freezeRotation = true;
+        
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
             transform.Rotate(Vector3.forward);
         }
 
-        else if(Input.GetKey(KeyCode.RightArrow))
+        else if (Input.GetKey(KeyCode.RightArrow))
         {
             transform.Rotate(-Vector3.forward);
         }
+        myRigidBody.freezeRotation = false;
+    }
+
+    private void GhettoZAxisFix()
+    {
+        var XPos = transform.position.x;
+        var YPos = transform.position.y;
+        transform.position = new Vector3(XPos, YPos, 0);
     }
 }
