@@ -7,6 +7,11 @@ public class Rocket : MonoBehaviour {
 
     Rigidbody myRigidBody;
 
+    [Header("Config")]
+    [SerializeField] float rcsThrust = 100f;
+    [SerializeField] float mainThrust = 100f;
+
+
     [Header("SFX")]
     [SerializeField] AudioSource rocketSound;
 
@@ -22,18 +27,33 @@ public class Rocket : MonoBehaviour {
         ProcessInput();
 	}
 
+    void OnCollisionEnter(Collision collision)
+    {
+        switch (collision.gameObject.tag)
+        {
+            case "Friendly":
+                Debug.Log("Friendly collision");
+                break;
+
+            default:
+                Debug.Log("Hostile collision");
+                break;
+                               
+        }
+    }
     private void ProcessInput()
     {
         Thrust();
         Rotate();
-        GhettoZAxisFix();
+        GhettoZAxisFix();  //to prevent the rocket from going to/from the player camera in this essentially-2D game
     }
 
     private void Thrust()
     {
         if (Input.GetKey(KeyCode.Space)) //can thrust while rotating
         {
-            myRigidBody.AddRelativeForce(Vector3.up);
+            float thrustThisFrame = mainThrust * Time.deltaTime;
+            myRigidBody.AddRelativeForce(Vector3.up * thrustThisFrame);
             if (!rocketSound.isPlaying) //so the sound effect doesn't layer
             {
                 rocketSound.Play();
@@ -48,16 +68,17 @@ public class Rocket : MonoBehaviour {
     private void Rotate()
     {
         myRigidBody.freezeRotation = true;
-        
+        float rotationThisFrame = rcsThrust * Time.deltaTime;
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            transform.Rotate(Vector3.forward);
+            
+            transform.Rotate(Vector3.forward * rotationThisFrame);
         }
 
         else if (Input.GetKey(KeyCode.RightArrow))
         {
-            transform.Rotate(-Vector3.forward);
+            transform.Rotate(-Vector3.forward * rotationThisFrame);
         }
         myRigidBody.freezeRotation = false;
     }
@@ -68,4 +89,5 @@ public class Rocket : MonoBehaviour {
         var YPos = transform.position.y;
         transform.position = new Vector3(XPos, YPos, 0);
     }
+       
 }
