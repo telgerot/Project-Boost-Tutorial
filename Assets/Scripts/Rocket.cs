@@ -8,10 +8,10 @@ public class Rocket : MonoBehaviour {
 
     Rigidbody myRigidBody;
 
-    [Header("State")]
-    [SerializeField] int levelNumber = 0;
+
     enum State {Alive, Dying, Transcending};
     [SerializeField] State state = State.Alive;
+    [SerializeField] bool mortality = true;
 
     [Header("Parameters")]
     [SerializeField] float levelTransitionTime = 1f;
@@ -75,23 +75,38 @@ public class Rocket : MonoBehaviour {
 
     private void StartDeathSequence()
     {
-        state = State.Dying;
-        rocketSound.Stop();
-        mainEngineParticles.Stop();
-        rocketSound.PlayOneShot(deathSound);
-        deathParticles.Play();
-        Invoke("LoadFirstLevel", levelTransitionTime);
+        if (mortality == true)
+        {
+            state = State.Dying;
+            rocketSound.Stop();
+            mainEngineParticles.Stop();
+            rocketSound.PlayOneShot(deathSound);
+            deathParticles.Play();
+            Invoke("LoadFirstLevel", levelTransitionTime);
+        }
+        else
+        {
+            return;
+        }
     }
 
     private void LoadFirstLevel()
     {
         SceneManager.LoadScene(0);
-        levelNumber = 0;
     }
 
     private void LoadNextLevel()
     {
-        SceneManager.LoadScene(levelNumber + 1);
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        int nextLevelSceneIndex = currentSceneIndex + 1;
+        if (nextLevelSceneIndex < SceneManager.sceneCountInBuildSettings) // loops to first level after finishing the last
+        {
+            SceneManager.LoadScene(nextLevelSceneIndex);
+        }
+        else
+        {
+            SceneManager.LoadScene(0);
+        }
     }
 
     private void ProcessInput()
@@ -101,11 +116,16 @@ public class Rocket : MonoBehaviour {
             RespondToThrustInput();
             RespondToRotationInput();
         }
+        if (Debug.isDebugBuild)
+        {
+            RespondToDebugKeys();
+        }
+        
     }
 
     private void RespondToThrustInput()
     {
-        if (Input.GetKey(KeyCode.Space)) 
+        if (Input.GetKey(KeyCode.Space))
         {
             ApplyThrust();
         }
@@ -143,5 +163,17 @@ public class Rocket : MonoBehaviour {
             transform.Rotate(-Vector3.forward * rotationThisFrame);
         }
         myRigidBody.freezeRotation = false;
-    }       
+    }
+
+    private void RespondToDebugKeys()
+    {
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            LoadNextLevel();
+        }
+        else if (Input.GetKeyDown(KeyCode.M))
+        {
+            mortality = !mortality;
+        }
+    }
 }
